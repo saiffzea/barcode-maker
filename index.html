@@ -589,8 +589,8 @@
             <div class="file-settings-row">
                 <input type="text" id="file-name-input" placeholder="اسم الصورة">
                 <select id="file-extension-select">
+                    <option value="jpeg" selected>JPG</option>
                     <option value="png">PNG</option>
-                    <option value="jpeg">JPG</option>
                 </select>
             </div>
         </div>
@@ -673,8 +673,9 @@
         document.getElementById('generate-section').style.display = 'block';
         document.getElementById('signature').style.display = 'flex';
 
+        var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         var isFileSystemSupported = false;
-        try { isFileSystemSupported = ('showDirectoryPicker' in window); } catch (e) { }
+        try { isFileSystemSupported = ('showDirectoryPicker' in window) && !isMobile; } catch (e) { }
 
         function switchTab(tabName) {
             document.getElementById('generate-section').classList.remove('active-section');
@@ -802,7 +803,8 @@
             if (typeof Html5QrcodeScanner === 'undefined') { alert("مكتبة الكاميرا لم تُحمل. تأكد من الانترنت."); stopScanner(); return; }
 
             try {
-                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 }, false);
+                // Simplified properties to prevent crash on mobile devices (No aspectRatio, smaller qrbox)
+                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 200 }, false);
                 html5QrcodeScanner.render(function (text) {
                     stopScanner(); document.getElementById("scan-result-container").style.display = "block"; document.getElementById("scan-result-text").innerText = text; var rsLink = document.getElementById("scan-result-link"); if (text.startsWith("http")) { rsLink.href = text; rsLink.style.display = "inline-flex"; } else rsLink.style.display = "none"; if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
                 }, function (error) { /* Ignore regular scan fails */ });
