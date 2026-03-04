@@ -822,7 +822,7 @@
                 }, function (error) { /* تجاهل أخطاء عدم وجود باركود بالثانية الواحدة */ });
             } catch (err) {
                 stopScanner();
-                document.getElementById("camera-error-msg").innerText = "تعذر تشغيل واجهة الكاميرا.";
+                document.getElementById("camera-error-msg").innerHTML = "تعذر تشغيل واجهة الكاميرا.<br>السبب التقني: " + (err.message || err);
                 document.getElementById("camera-error-msg").style.display = "block";
             }
         }
