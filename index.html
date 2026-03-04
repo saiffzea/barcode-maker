@@ -7,7 +7,7 @@
     <title>أدوات الباركود الاحترافية</title>
     <!-- استدعاء مكتبات الباركود والأيقونات -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- خطوط جوجل -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -795,30 +795,70 @@
             } catch (error) { alert("تم إلغاء المشاركة أو غير مدعومة."); }
         }
 
-        var html5QrcodeScanner = null;
+        var html5QrCode = null;
         function startScanner() {
             document.getElementById("camera-error-msg").style.display = "none";
-            document.getElementById("start-scan-btn").style.display = "none"; document.getElementById("stop-scan-btn").style.display = "inline-flex"; document.getElementById("scan-result-container").style.display = "none";
+            document.getElementById("start-scan-btn").style.display = "none";
+            document.getElementById("stop-scan-btn").style.display = "inline-flex";
+            document.getElementById("scan-result-container").style.display = "none";
 
-            if (typeof Html5QrcodeScanner === 'undefined') { alert("مكتبة الكاميرا لم تُحمل. تأكد من الانترنت."); stopScanner(); return; }
+            if (typeof Html5Qrcode === 'undefined') {
+                alert("مكتبة الكاميرا لم تُحمل. تأكد من الانترنت.");
+                stopScanner();
+                return;
+            }
 
             try {
-                // Simplified properties to prevent crash on mobile devices (No aspectRatio, smaller qrbox)
-                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 200 }, false);
-                html5QrcodeScanner.render(function (text) {
-                    stopScanner(); document.getElementById("scan-result-container").style.display = "block"; document.getElementById("scan-result-text").innerText = text; var rsLink = document.getElementById("scan-result-link"); if (text.startsWith("http")) { rsLink.href = text; rsLink.style.display = "inline-flex"; } else rsLink.style.display = "none"; if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
-                }, function (error) { /* Ignore regular scan fails */ });
+                html5QrCode = new Html5Qrcode("reader");
+                var config = { fps: 10, qrbox: 200 };
+
+                var successCb = function (text) {
+                    stopScanner();
+                    document.getElementById("scan-result-container").style.display = "block";
+                    document.getElementById("scan-result-text").innerText = text;
+                    var rsLink = document.getElementById("scan-result-link");
+                    if (text.startsWith("http")) { rsLink.href = text; rsLink.style.display = "inline-flex"; }
+                    else { rsLink.style.display = "none"; }
+                    if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+                };
+
+                var errorCb = function (error) { /* Ignore */ };
+
+                html5QrCode.start({ facingMode: "environment" }, config, successCb, errorCb)
+                    .catch(function (err) {
+                        html5QrCode.start({ facingMode: "user" }, config, successCb, errorCb)
+                            .catch(function (err2) {
+                                stopScanner();
+                                document.getElementById("camera-error-msg").innerText = "تعذر فتح الكاميرا: تأكد من إعطاء صلاحية الكاميرا للمتصفح.";
+                                document.getElementById("camera-error-msg").style.display = "block";
+                            });
+                    });
             } catch (err) {
                 stopScanner();
                 document.getElementById("camera-error-msg").style.display = "block";
             }
         }
+
         function stopScanner() {
-            if (html5QrcodeScanner) {
-                try { html5QrcodeScanner.clear().then(function () { document.getElementById("stop-scan-btn").style.display = "none"; document.getElementById("start-scan-btn").style.display = "inline-flex"; html5QrcodeScanner = null; }).catch(function (e) { html5QrcodeScanner = null; document.getElementById("stop-scan-btn").style.display = "none"; document.getElementById("start-scan-btn").style.display = "inline-flex"; }); }
-                catch (err) { html5QrcodeScanner = null; document.getElementById("stop-scan-btn").style.display = "none"; document.getElementById("start-scan-btn").style.display = "inline-flex"; }
+            if (html5QrCode) {
+                try {
+                    html5QrCode.stop().then(function () {
+                        html5QrCode.clear();
+                        html5QrCode = null;
+                        document.getElementById("stop-scan-btn").style.display = "none";
+                        document.getElementById("start-scan-btn").style.display = "inline-flex";
+                    }).catch(function (e) {
+                        html5QrCode.clear(); html5QrCode = null;
+                        document.getElementById("stop-scan-btn").style.display = "none"; document.getElementById("start-scan-btn").style.display = "inline-flex";
+                    });
+                } catch (err) {
+                    try { html5QrCode.clear(); } catch (e) { }
+                    html5QrCode = null;
+                    document.getElementById("stop-scan-btn").style.display = "none"; document.getElementById("start-scan-btn").style.display = "inline-flex";
+                }
             } else {
-                document.getElementById("stop-scan-btn").style.display = "none"; document.getElementById("start-scan-btn").style.display = "inline-flex";
+                document.getElementById("stop-scan-btn").style.display = "none";
+                document.getElementById("start-scan-btn").style.display = "inline-flex";
             }
         }
         function copyScanResult() { var txt = document.getElementById("scan-result-text").innerText; if (txt) navigator.clipboard.writeText(txt).then(function () { alert("تم نسخ النص بنجاح!"); }); }
