@@ -682,7 +682,7 @@
             document.getElementById('scan-section').classList.remove('active-section');
             var btns = document.querySelectorAll('.tab-btn');
             btns.forEach(function (btn) { btn.classList.remove('active') });
-            if (tabName === 'generate') { document.getElementById('generate-section').classList.add('active-section'); btns[0].classList.add('active'); stopScanner(); }
+            if (tabName === 'generate') { document.getElementById('generate-section').classList.add('active-section'); btns[0].classList.add('active'); if (typeof stopScanner === 'function') stopScanner(); }
             else { document.getElementById('scan-section').classList.add('active-section'); btns[1].classList.add('active'); }
         }
 
