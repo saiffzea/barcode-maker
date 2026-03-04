@@ -847,18 +847,15 @@
             if (html5QrCode) {
                 try {
                     html5QrCode.stop().then(function () {
-                        html5QrCode.clear();
                         html5QrCode = null;
                         document.getElementById("stop-scan-btn").style.display = "none";
                         document.getElementById("start-scan-btn").style.display = "inline-flex";
                     }).catch(function (e) {
-                        try { html5QrCode.clear(); } catch (err) { }
                         html5QrCode = null;
                         document.getElementById("stop-scan-btn").style.display = "none";
                         document.getElementById("start-scan-btn").style.display = "inline-flex";
                     });
                 } catch (err) {
-                    try { html5QrCode.clear(); } catch (e) { }
                     html5QrCode = null;
                     document.getElementById("stop-scan-btn").style.display = "none";
                     document.getElementById("start-scan-btn").style.display = "inline-flex";
