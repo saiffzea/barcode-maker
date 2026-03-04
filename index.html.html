@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>أدوات الباركود الاحترافية</title>
+    <!-- استدعاء مكتبات الباركود والأيقونات -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- خطوط جوجل -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --secondary: #10B981;
+            --secondary-hover: #059669;
+            --gray-light: #F3F4F6;
+            --gray-subtle: #9CA3AF;
+            --dark-text: #1F2937;
+            --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            --card-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tajawal', Tahoma, sans-serif;
+            background: var(--bg-gradient);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 15px;
+            color: var(--dark-text);
+        }
+
+        /* رسالة تحذيرية في حالة تعطيل الجافاسكربت (كما يحدث عند فتح الملف في HTML Viewer بالموبايل) */
+        .js-warning {
+            display: none;
+            background-color: #FEF2F2;
+            color: #991B1B;
+            border: 1px solid #F87171;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        /* التبويبات */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: white;
+            padding: 8px;
+            border-radius: 50px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            background: transparent;
+            color: var(--gray-subtle);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 40px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
+        }
+
+        /* البطاقة الرئيسية */
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 35px 25px;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            display: none;
+            position: relative;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container.active-section {
+            display: block;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-weight: 800;
+            color: var(--primary);
+            font-size: 24px;
+        }
+
+        p {
+            color: #6B7280;
+            margin-bottom: 20px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        input[type="text"] {
+            padding: 14px 20px;
+            width: 100%;
+            margin-bottom: 15px;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: var(--transition);
+            background: #F9FAFB;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .file-settings {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .file-settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        #file-name-input {
+            flex: 1;
+            min-width: 140px;
+            margin: 0;
+        }
+
+        #file-extension-select {
+            padding: 12px;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            font-size: 15px;
+            background-color: #F9FAFB;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            color: var(--dark-text);
+            transition: var(--transition);
+            min-width: 80px;
+        }
+
+        #file-extension-select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        button {
+            padding: 13px 20px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 5px;
+            width: auto;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .action-btns {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .save-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        #download-btn {
+            background-color: var(--secondary);
+            flex: 1;
+            min-width: 130px;
+        }
+
+        #download-btn:hover {
+            background-color: var(--secondary-hover);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        #change-folder-btn {
+            background-color: #F3F4F6;
+            color: var(--dark-text);
+            border: 1px solid #E5E7EB;
+            flex: 1;
+            min-width: 110px;
+        }
+
+        #change-folder-btn:hover {
+            background-color: #E5E7EB;
+            box-shadow: none;
+        }
+
+        .generate-btn {
+            font-size: 16px;
+            padding: 14px 30px;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+            width: 100%;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        #main-share-btn {
+            background-color: #8B5CF6;
+            width: 100%;
+            margin: 0;
+        }
+
+        #main-share-btn:hover {
+            background-color: #7C3AED;
+            box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.15);
+            border-radius: 16px;
+            bottom: calc(100% + 10px);
+            left: 0;
+            right: 0;
+            width: 100%;
+            overflow: hidden;
+            flex-direction: column;
+            border: 1px solid #f0f0f0;
+            z-index: 10;
+        }
+
+        .dropdown-content button {
+            color: #4B5563;
+            background: transparent;
+            padding: 14px 20px;
+            text-decoration: none;
+            display: flex;
+            width: 100%;
+            border-radius: 0;
+            margin: 0;
+            justify-content: flex-start;
+            font-weight: 600;
+            border-bottom: 1px solid #F3F4F6;
+            box-shadow: none;
+        }
+
+        .dropdown-content button:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-content button:hover {
+            background-color: #F9FAFB;
+            color: var(--primary);
+            transform: none;
+            padding-right: 25px;
+        }
+
+        .dropdown-content i {
+            width: 25px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        #share-whatsapp i {
+            color: #25D366;
+        }
+
+        #share-telegram i {
+            color: #0088cc;
+        }
+
+        #share-email i {
+            color: #ea4335;
+        }
+
+        #share-native i {
+            color: #3b5998;
+        }
+
+        .show-dropdown {
+            display: flex !important;
+            animation: popUp 0.2s ease-out;
+        }
+
+        @keyframes popUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-msg {
+            font-size: 13px;
+            color: #6B7280;
+            margin-top: 10px;
+            display: block;
+            background: #F3F4F6;
+            padding: 10px;
+            border-radius: 20px;
+            width: 100%;
+            word-break: break-word;
+        }
+
+        .info-note {
+            color: #EF4444;
+            font-size: 12px;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        .warning-note {
+            color: #D97706;
+            font-size: 13px;
+            margin-top: 15px;
+            display: none;
+            background: #FEF3C7;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        #qrcode {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #qrcode img,
+        #qrcode canvas {
+            display: none;
+        }
+
+        .qr-output-img {
+            border: 15px solid white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            display: block !important;
+            animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 100% !important;
+            max-width: 250px !important;
+            height: auto !important;
+            aspect-ratio: 1/1;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        #reader {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            background-color: #f8f9fa;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        #scan-result-container {
+            margin-top: 20px;
+            padding: 20px 15px;
+            background: linear-gradient(145deg, #ffffff, #f3f4f6);
+            border-radius: 16px;
+            display: none;
+            word-wrap: break-word;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+            width: 100%;
+        }
+
+        #scan-result-text {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 15px;
+            word-break: break-all;
+        }
+
+        .link-action-btn {
+            background-color: var(--secondary);
+            text-decoration: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 700;
+            margin-top: 10px;
+            transition: var(--transition);
+            flex: 1;
+            min-width: 130px;
+        }
+
+        .link-action-btn:hover {
+            background-color: var(--secondary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
+        .designer-signature {
+            margin-top: 30px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #9CA3AF;
+            text-align: center;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .designer-signature span {
+            color: var(--primary);
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        @media screen and (max-width: 480px) {
+            .container {
+                padding: 25px 15px;
+            }
+
+            .tabs {
+                gap: 5px;
+                padding: 5px;
+            }
+
+            .tab-btn {
+                padding: 10px 15px;
+                font-size: 13px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            button {
+                font-size: 14px;
+            }
+
+            #download-btn,
+            #change-folder-btn {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            .link-action-btn,
+            #scan-result-container button {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- رسالة تظهر فقط إذا كان الجافاسكربت معطلاً (مثال: مستعرضات ملفات الموبايل) -->
+    <noscript>
+        <div
+            style="background-color: #FEF2F2; color: #991B1B; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #F87171; width: 90%; max-width: 500px; margin-top: 50px;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 30px; margin-bottom: 10px;"></i><br>
+            <strong>عذراً، تطبيقك الحالي يمنع تشغيل الأزرار (JavaScript معطل).</strong><br><br>
+            إذا كنت تستخدم هاتفاً، يرجى فتح هذا الملف باستخدام <b>متصفح Google Chrome</b> بدلاً من مستعرض الملفات العادي
+            (HTML Viewer) لكي تعمل الأزرار.
+        </div>
+    </noscript>
+
+    <div class="tabs" id="main-tabs" style="display: none;">
+        <button class="tab-btn active" onclick="switchTab('generate')"><i class="fa-solid fa-qrcode"></i> إنشاء</button>
+        <button class="tab-btn" onclick="switchTab('scan')"><i class="fa-solid fa-camera"></i> مسح ضوئي</button>
+    </div>
+
+    <!-- =============== قسم التوليد =============== -->
+    <div class="container active-section" id="generate-section" style="display: none;">
+        <h2>أدوات الباركود الذكية <i class="fa-solid fa-wand-magic-sparkles"></i></h2>
+        <p>قم بتحويل الروابط والنصوص إلى باركود فني وعالي الدقة</p>
+
+        <input type="text" id="qr-text" placeholder="أدخل الرابط، مثلاً: https://google.com" required>
+
+        <div class="file-settings" id="file-settings">
+            <div class="file-settings-row">
+                <input type="text" id="file-name-input" placeholder="اسم الصورة">
+                <select id="file-extension-select">
+                    <option value="png">PNG</option>
+                    <option value="jpeg">JPG</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="width: 100%;">
+            <button class="generate-btn" onclick="generateQR()"><i class="fa-solid fa-bolt"></i> توليد الباركود
+                السحري</button>
+        </div>
+
+        <div class="action-btns" id="action-btns">
+            <div class="save-btns">
+                <button id="download-btn" onclick="saveToFolder()">تنزيل الصورة <i
+                        class="fa-solid fa-download"></i></button>
+                <button id="change-folder-btn" onclick="selectFolder()"><i class="fa-solid fa-folder-open"></i></button>
+            </div>
+            <span class="status-msg" id="status-msg"></span>
+
+            <div class="dropdown">
+                <button id="main-share-btn" onclick="toggleShareMenu()">
+                    المشاركة السريعة <i class="fa-solid fa-paper-plane"></i>
+                </button>
+                <div id="shareDropdown" class="dropdown-content">
+                    <button onclick="shareToApp('whatsapp')"><i class="fa-brands fa-whatsapp"></i> إرسال عبر
+                        واتساب</button>
+                    <button onclick="shareToApp('telegram')"><i class="fa-brands fa-telegram"></i> إرسال عبر
+                        تيليجرام</button>
+                    <button onclick="shareToApp('email')"><i class="fa-solid fa-envelope-open-text"
+                            style="color: #ea4335;"></i> إرسال إلى جيميل</button>
+                    <button onclick="shareNative()"><i class="fa-brands fa-bluetooth" style="color: #3b5998;"></i>
+                        مشاركة كملف</button>
+                </div>
+            </div>
+
+            <div class="info-note">* التطبيقات تُرسل النص فقط لضمان السرعة. أرسلها كملف عبر الزر الأخير أو حفظها أولاً.
+            </div>
+        </div>
+        <div id="qrcode"></div>
+    </div>
+
+    <!-- =============== قسم القراءة =============== -->
+    <div class="container" id="scan-section" style="display: none;">
+        <h2>قارئ ذكي <i class="fa-solid fa-camera-retro"></i></h2>
+        <p>قم بتوجيه كاميرا هاتفك نحو المربع لفك الشفرة لحظياً</p>
+
+        <div id="reader"></div>
+        <div style="width: 100%; display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+            <button id="start-scan-btn" onclick="startScanner()"
+                style="background-color: var(--primary); padding: 12px 25px; flex: 1;"><i class="fa-solid fa-play"></i>
+                تشغيل الكاميرا</button>
+            <button id="stop-scan-btn" onclick="stopScanner()"
+                style="display:none; background-color: #EF4444; padding: 12px 25px; flex: 1;"><i
+                    class="fa-solid fa-stop"></i> إيقاف</button>
+        </div>
+        <div id="camera-error-msg" class="warning-note">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            للأسف، لا يسمح متصفحك بالكاميرا للروابط المحلية (file://). لعمل الكاميرا في الجوال، يجب رفع هذا الملف على
+            سيرفر (استضافة) أو استخدام تطبيق سيرفر محلي.
+        </div>
+
+        <div id="scan-result-container">
+            <h3 style="color: #6B7280; font-size: 14px; margin-top: 0;">تم الكشف عن:</h3>
+            <p id="scan-result-text"></p>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <a id="scan-result-link" href="#" target="_blank" class="link-action-btn" style="display: none;"><i
+                        class="fa-solid fa-globe"></i> زيارة الموقع</a>
+                <button onclick="copyScanResult()"
+                    style="background-color: #4B5563; padding: 12px 20px; flex: 1; min-width: 130px;"><i
+                        class="fa-regular fa-copy"></i> نسخ النص</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="designer-signature" id="signature" style="display: none;">
+        تم التصميم بواسطة <span>سيف الجميلي</span>
+    </div>
+
+    <script>
+        // إظهار المحتوى فور عمل الـ Javascript (يحمي من عرض تصميم فارغ إذا تم حظر JS)
+        document.getElementById('main-tabs').style.display = 'flex';
+        document.getElementById('generate-section').style.display = 'block';
+        document.getElementById('signature').style.display = 'flex';
+
+        var isFileSystemSupported = false;
+        try { isFileSystemSupported = ('showDirectoryPicker' in window); } catch (e) { }
+
+        function switchTab(tabName) {
+            document.getElementById('generate-section').classList.remove('active-section');
+            document.getElementById('scan-section').classList.remove('active-section');
+            var btns = document.querySelectorAll('.tab-btn');
+            btns.forEach(function (btn) { btn.classList.remove('active') });
+            if (tabName === 'generate') { document.getElementById('generate-section').classList.add('active-section'); btns[0].classList.add('active'); stopScanner(); }
+            else { document.getElementById('scan-section').classList.add('active-section'); btns[1].classList.add('active'); }
+        }
+
+        function toggleShareMenu() { document.getElementById("shareDropdown").classList.toggle("show-dropdown"); }
+        window.onclick = function (event) {
+            if (!event.target.matches('#main-share-btn') && !event.target.closest('#main-share-btn')) {
+                var dropdowns = document.getElementsByClassName("dropdown-content");
+                for (var i = 0; i < dropdowns.length; i++) { var openDropdown = dropdowns[i]; if (openDropdown.classList.contains('show-dropdown')) openDropdown.classList.remove('show-dropdown'); }
+            }
+        }
+
+        var qrContainer = document.getElementById("qrcode"); var currentDirectoryHandle = null; var qrcode = null;
+
+        // تعطيل الـ IndexedDB بشكل كامل في الهواتف لتفادي التسبب بتحطم (Crash) تام للسكربت
+        var dbName = "QRAppDB"; var db;
+
+        window.onload = function () {
+            if (!isFileSystemSupported) {
+                document.getElementById("change-folder-btn").style.display = "none";
+                document.getElementById("status-msg").innerText = "سيتم التنزيل مباشرة إلى مجلد التنزيلات.";
+            }
+        };
+
+        function generateQR() {
+            try {
+                var qrText = document.getElementById("qr-text").value;
+                if (!qrText || qrText.trim() === "") { alert("يرجى إدخال نص أو رابط أولاً."); return; }
+
+                // التحقق من أن مكتبة الباركود محملة بنجاح، وإلا هناك مشكلة بالإنترنت أو المتصفح
+                if (typeof QRCode === 'undefined') {
+                    alert("مكتبة توليد الباركود لم تُحمل. تأكد من اتصال هاتفك بالإنترنت وافتح الملف في מתصفح Chrome."); return;
+                }
+
+                qrContainer.innerHTML = "";
+                qrcode = new QRCode(qrContainer, { text: qrText, width: 400, height: 400, colorDark: "#111827", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+
+                setTimeout(function () {
+                    var img = qrContainer.querySelector("img"); var canvas = qrContainer.querySelector("canvas");
+                    if (img) img.className = "qr-output-img"; else if (canvas) canvas.className = "qr-output-img";
+                    document.getElementById("file-settings").style.display = "flex";
+                    var suggested = qrText.split('/').pop().replace(/[^a-zA-Z0-9_\u0600-\u06FF]/g, '_');
+                    if (!suggested || suggested.length < 2) suggested = "qrcode";
+                    document.getElementById("file-name-input").value = suggested; document.getElementById("action-btns").style.display = "flex";
+                    if (isFileSystemSupported) updateStatusMsg();
+                }, 150);
+            } catch (error) {
+                alert("تعذر توليد الباركود بسبب قيود المتصفح: " + error.message);
+            }
+        }
+
+        function updateStatusMsg() {
+            if (!isFileSystemSupported) return;
+            var statusDiv = document.getElementById("status-msg");
+            if (currentDirectoryHandle) { statusDiv.innerHTML = `<i class="fa-regular fa-folder" style="color:#4F46E5"></i> يُحفظ في: <strong>${currentDirectoryHandle.name}</strong>`; document.getElementById("download-btn").innerHTML = 'حفظ أوتوماتيكي <i class="fa-solid fa-bolt"></i>'; }
+            else { statusDiv.innerHTML = "<i class=\"fa-solid fa-circle-info\"></i> حدد مجلداً لحفظ أسرع"; document.getElementById("download-btn").innerHTML = 'تنزيل الصورة <i class="fa-solid fa-download"></i>'; }
+        }
+
+        async function verifyPermission(fileHandle, readWrite) { var options = { mode: readWrite ? 'readwrite' : 'read' }; try { if (await fileHandle.queryPermission(options) === 'granted' || await fileHandle.requestPermission(options) === 'granted') return true; } catch (error) { } return false; }
+        async function selectFolder() {
+            if (!isFileSystemSupported) { alert("المتصفح في الجوال لا يدعم ميزة تحديد المجلدات الخاصة، سيتم التحميل مباشرة إلى مجلد التنزيلات."); return; }
+            try { currentDirectoryHandle = await window.showDirectoryPicker(); updateStatusMsg(); } catch (error) { }
+        }
+
+        async function convertImageToBlob(sourceElement, format) {
+            return new Promise(function (resolve) {
+                var canvas = document.createElement("canvas"); var padding = 40; var width = 400; var height = 400;
+                canvas.width = width + padding; canvas.height = height + padding; var ctx = canvas.getContext("2d"); ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                if (sourceElement.tagName.toLowerCase() === 'canvas') { ctx.drawImage(sourceElement, padding / 2, padding / 2, width, height); canvas.toBlob(function (blob) { resolve(blob) }, `image/${format}`, 1.0); }
+                else { var tempImg = new Image(); tempImg.onload = function () { ctx.drawImage(tempImg, padding / 2, padding / 2, width, height); canvas.toBlob(function (blob) { resolve(blob) }, `image/${format}`, 1.0); }; tempImg.src = sourceElement.src; }
+            });
+        }
+        async function getQrBlobAndName() { var qrSource = document.querySelector("#qrcode img[src]") || document.querySelector("#qrcode canvas"); if (!qrSource) return null; var ext = document.getElementById("file-extension-select").value; var displayExt = ext === 'jpeg' ? 'jpg' : 'png'; return { blob: await convertImageToBlob(qrSource, ext), fileName: `${document.getElementById("file-name-input").value.trim() || "barcode"}.${displayExt}` }; }
+
+        async function saveToFolder() {
+            try {
+                var data = await getQrBlobAndName(); if (!data) { alert("اضغط توليد الباركود أولاً."); return; }
+                if (isFileSystemSupported) {
+                    if (!currentDirectoryHandle && window.showDirectoryPicker) { currentDirectoryHandle = await window.showDirectoryPicker(); updateStatusMsg(); }
+                    if (currentDirectoryHandle) {
+                        if (!await verifyPermission(currentDirectoryHandle, true)) return;
+                        var fileHandle = await currentDirectoryHandle.getFileHandle(data.fileName, { create: true }); var writableStream = await fileHandle.createWritable(); await writableStream.write(data.blob); await writableStream.close();
+                        visuallyConfirmSave(); return;
+                    }
+                }
+                fallbackDownload(data);
+            } catch (error) {
+                alert("تم منع الحفظ التلقائي، سيتم التنزيل بالطريقة التقليدية.");
+                try { var dataFallback = await getQrBlobAndName(); if (dataFallback) fallbackDownload(dataFallback); } catch (e) { }
+            }
+        }
+
+        function fallbackDownload(data) {
+            var url = URL.createObjectURL(data.blob); var link = document.createElement("a"); link.href = url; link.download = data.fileName; document.body.appendChild(link); link.click(); document.body.removeChild(link); visuallyConfirmSave();
+        }
+
+        function visuallyConfirmSave() {
+            var btn = document.getElementById("download-btn"); var originalHTML = btn.innerHTML; btn.innerHTML = 'تم التنزيل! <i class="fa-solid fa-check"></i>'; btn.style.backgroundColor = '#10B981'; setTimeout(function () { btn.innerHTML = originalHTML; btn.style.backgroundColor = ''; }, 2000);
+        }
+
+        function shareToApp(app) {
+            var val = document.getElementById("qr-text").value; if (!val) return;
+            var qrText = encodeURIComponent(`الباركود:\n\n${val}`); var url = ""; if (app === 'whatsapp') url = `https://wa.me/?text=${qrText}`; else if (app === 'telegram') url = `https://t.me/share/url?url=${encodeURIComponent(val)}&text=شاهد`; else if (app === 'email') url = `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent("مشاركة باركود")}&body=${qrText}`; if (url) window.open(url, '_blank', 'noopener,noreferrer');
+        }
+        async function shareNative() {
+            try {
+                var data = await getQrBlobAndName(); if (!data) { alert("لا يوجد باركود."); return; }
+                if (navigator.canShare && navigator.canShare({ files: [new File([data.blob], data.fileName, { type: data.blob.type })] })) {
+                    await navigator.share({ title: 'الباركود', text: 'صورة باركود عالية الدقة', files: [new File([data.blob], data.fileName, { type: data.blob.type })] });
+                } else { alert("متصفحك غير داعم للمشاركة المباشرة للملفات، لتجاوز ذلك استعمل متصفح Chrome أو الاكتفاء بحفظ الصورة."); }
+            } catch (error) { alert("تم إلغاء المشاركة أو غير مدعومة."); }
+        }
+
+        var html5QrcodeScanner = null;
+        function startScanner() {
+            document.getElementById("camera-error-msg").style.display = "none";
+            document.getElementById("start-scan-btn").style.display = "none"; document.getElementById("stop-scan-btn").style.display = "inline-flex"; document.getElementById("scan-result-container").style.display = "none";
+
+            if (typeof Html5QrcodeScanner === 'undefined') { alert("مكتبة الكاميرا لم تُحمل. تأكد من الانترنت."); stopScanner(); return; }
+
+            try {
+                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 }, false);
+                html5QrcodeScanner.render(function (text) {
+                    stopScanner(); document.getElementById("scan-result-container").style.display = "block"; document.getElementById("scan-result-text").innerText = text; var rsLink = document.getElementById("scan-result-link"); if (text.startsWith("http")) { rsLink.href = text; rsLink.style.display = "inline-flex"; } else rsLink.style.display = "none"; if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+                }, function (error) { /* Ignore regular scan fails */ });
+            } catch (err) {
+                stopScanner();
+                document.getElementById("camera-error-msg").style.display = "block";
+            }
+        }
+        function stopScanner() {
+            if (html5QrcodeScanner) {
+                try { html5QrcodeScanner.clear().then(function () { document.getElementById("stop-scan-btn").style.display = "none"; document.getElementById("start-scan-btn").style.display = "inline-flex"; html5QrcodeScanner = null; }).catch(function (e) { html5QrcodeScanner = null; document.getElementById("stop-scan-btn").style.display = "none"; document.getElementById("start-scan-btn").style.display = "inline-flex"; }); }
+                catch (err) { html5QrcodeScanner = null; document.getElementById("stop-scan-btn").style.display = "none"; document.getElementById("start-scan-btn").style.display = "inline-flex"; }
+            } else {
+                document.getElementById("stop-scan-btn").style.display = "none"; document.getElementById("start-scan-btn").style.display = "inline-flex";
+            }
+        }
+        function copyScanResult() { var txt = document.getElementById("scan-result-text").innerText; if (txt) navigator.clipboard.writeText(txt).then(function () { alert("تم نسخ النص بنجاح!"); }); }
+    </script>
+</body>
+
+</html>
