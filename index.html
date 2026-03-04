@@ -824,15 +824,23 @@
 
                 var errorCb = function (error) { /* Ignore */ };
 
-                html5QrCode.start({ facingMode: "environment" }, config, successCb, errorCb)
-                    .catch(function (err) {
-                        html5QrCode.start({ facingMode: "user" }, config, successCb, errorCb)
-                            .catch(function (err2) {
+                Html5Qrcode.getCameras().then(function (devices) {
+                    if (devices && devices.length) {
+                        var cameraId = devices[0].id;
+                        html5QrCode.start(cameraId, config, successCb, errorCb)
+                            .catch(function (err) {
                                 stopScanner();
-                                document.getElementById("camera-error-msg").innerText = "تعذر فتح الكاميرا: تأكد من إعطاء صلاحية الكاميرا للمتصفح.";
+                                document.getElementById("camera-error-msg").innerText = "تعذر الوصول للكاميرا. يرجى إعطاء الصلاحية للمتصفح.";
                                 document.getElementById("camera-error-msg").style.display = "block";
                             });
-                    });
+                    } else {
+                        throw new Error("لا توجد كاميرات");
+                    }
+                }).catch(function (err) {
+                    stopScanner();
+                    document.getElementById("camera-error-msg").innerText = "لم يتم العثور على أي كاميرا متصلة في جهازك.";
+                    document.getElementById("camera-error-msg").style.display = "block";
+                });
             } catch (err) {
                 stopScanner();
                 document.getElementById("camera-error-msg").style.display = "block";
